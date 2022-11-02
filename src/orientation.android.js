@@ -6,25 +6,25 @@
 //  Copyright (c) wonday.org All rights reserved.
 //
 
-'use strict';
-const OrientationNative = require('react-native').NativeModules.Orientation;
-const {NativeEventEmitter} = require('react-native');
+"use strict";
+const OrientationNative = require("react-native").NativeModules.Orientation;
+const { NativeEventEmitter } = require("react-native");
 let LocalEventEmitter;
 
 var listeners = {};
 
 var id = 0;
-var META = '__listener_id';
+var META = "__listener_id";
 
 var locked = false;
 
 function getKey(listener) {
   if (!listener.hasOwnProperty(META)) {
     if (!Object.isExtensible(listener)) {
-      return 'F';
+      return "F";
     }
     Object.defineProperty(listener, META, {
-      value: 'L' + ++id,
+      value: "L" + ++id,
     });
   }
   return listener[META];
@@ -88,10 +88,10 @@ export default class Orientation {
     LocalEventEmitter =
       LocalEventEmitter ?? new NativeEventEmitter(OrientationNative);
     listeners[key] = LocalEventEmitter.addListener(
-      'orientationDidChange',
+      "orientationDidChange",
       (body) => {
         cb(body.orientation);
-      },
+      }
     );
   };
 
@@ -110,10 +110,10 @@ export default class Orientation {
     LocalEventEmitter =
       LocalEventEmitter ?? new NativeEventEmitter(OrientationNative);
     listeners[key] = LocalEventEmitter.addListener(
-      'deviceOrientationDidChange',
+      "deviceOrientationDidChange",
       (body) => {
         cb(body.deviceOrientation);
-      },
+      }
     );
   };
 
@@ -131,7 +131,7 @@ export default class Orientation {
     var key = getKey(cb);
     LocalEventEmitter =
       LocalEventEmitter ?? new NativeEventEmitter(OrientationNative);
-    listeners[key] = LocalEventEmitter.addListener('lockDidChange', (body) => {
+    listeners[key] = LocalEventEmitter.addListener("lockDidChange", (body) => {
       cb(body.orientation);
     });
   };

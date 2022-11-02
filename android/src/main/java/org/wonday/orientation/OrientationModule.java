@@ -291,14 +291,18 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
     @Override
     public void start() {
         FLog.i(ReactConstants.TAG, "orientation detect enabled.");
-        mOrientationListener.enable();
+        if (mOrientationListener != null) {
+              mOrientationListener.enable();
+        }
         ctx.registerReceiver(mReceiver, new IntentFilter("onConfigurationChanged"));
     }
 
     @Override
     public void stop() {
         FLog.d(ReactConstants.TAG, "orientation detect disabled.");
-        mOrientationListener.disable();
+        if (mOrientationListener != null) {
+              mOrientationListener.disable();
+        }
         try {
             ctx.unregisterReceiver(mReceiver);
         } catch (java.lang.IllegalArgumentException e) {
@@ -309,7 +313,9 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
     @Override
     public void release() {
         FLog.d(ReactConstants.TAG, "orientation detect disabled.");
-        mOrientationListener.disable();
+        if (mOrientationListener != null) {
+              mOrientationListener.disable();
+        }
 
         final Activity activity = getCurrentActivity();
         if (activity == null) return;
@@ -333,7 +339,7 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
     }
 
     @ReactMethod
-    public  void registerListeners() {
+    public void registerListeners() {
         if (mOrientationListener != null) {
             return;
         }
@@ -366,9 +372,7 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
                     WritableMap params = Arguments.createMap();
                     params.putString("deviceOrientation", deviceOrientationValue);
                     if (ctx.hasActiveCatalystInstance()) {
-                        ctx
-                                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                                .emit("deviceOrientationDidChange", params);
+                        ctx.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("deviceOrientationDidChange", params);
                     }
                 }
 
@@ -381,21 +385,22 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
                     WritableMap params = Arguments.createMap();
                     params.putString("orientation", orientationValue);
                     if (ctx.hasActiveCatalystInstance()) {
-                        ctx
-                                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                                .emit("orientationDidChange", params);
+                        ctx.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("orientationDidChange", params);
                     }
                 }
-
                 return;
             }
         };
         if (mOrientationListener.canDetectOrientation()) {
             FLog.d(ReactConstants.TAG, "orientation detect enabled.");
-            mOrientationListener.enable();
+            if (mOrientationListener != null) {
+              mOrientationListener.enable();
+            }
         } else {
             FLog.d(ReactConstants.TAG, "orientation detect disabled.");
-            mOrientationListener.disable();
+            if (mOrientationListener != null) {
+              mOrientationListener.disable();
+            }
         }
     }
 }
