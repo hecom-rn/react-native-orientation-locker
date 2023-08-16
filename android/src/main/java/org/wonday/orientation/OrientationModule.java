@@ -355,13 +355,13 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
 
                 if (orientation == -1) {
                     deviceOrientationValue = "UNKNOWN";
-                } else if (orientation > 355 || orientation < 5) {
+                } else if (orientation > 330 || orientation < 30) {
                     deviceOrientationValue = "PORTRAIT";
-                } else if (orientation > 85 && orientation < 95) {
+                } else if (orientation > 60 && orientation < 120) {
                     deviceOrientationValue = "LANDSCAPE-RIGHT";
-                } else if (orientation > 175 && orientation < 185) {
+                } else if (orientation > 150 && orientation < 210) {
                     deviceOrientationValue = "PORTRAIT-UPSIDEDOWN";
-                } else if (orientation > 265 && orientation < 275) {
+                } else if (orientation > 240 && orientation < 300) {
                     deviceOrientationValue = "LANDSCAPE-LEFT";
                 }
 
