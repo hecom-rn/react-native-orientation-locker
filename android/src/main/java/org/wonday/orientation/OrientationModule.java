@@ -17,6 +17,7 @@ import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.hardware.SensorManager;
 import android.util.Log;
+import android.os.Build;
 import android.view.Display;
 import android.view.OrientationEventListener;
 import android.view.Surface;
@@ -44,6 +45,7 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
     private OrientationEventListener mOrientationListener = null;
     final ReactApplicationContext ctx;
     private boolean isLocked = false;
+    private boolean isConfigurationChangeReceiverRegistered = false;
     private String lastOrientationValue = "";
     private String lastDeviceOrientationValue = "";
 
@@ -246,11 +248,11 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
 
         final Activity activity = getCurrentActivity();
         if (activity == null) return;
-        activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+        activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         isLocked = false;
 
         //force send an UI orientation event when unlock
-        lastOrientationValue = lastDeviceOrientationValue;
+        lastOrientationValue = getCurrentOrientation();
         WritableMap params = Arguments.createMap();
         params.putString("orientation", lastOrientationValue);
         if (ctx.hasActiveCatalystInstance()) {
@@ -294,7 +296,8 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
         if (mOrientationListener != null) {
               mOrientationListener.enable();
         }
-        ctx.registerReceiver(mReceiver, new IntentFilter("onConfigurationChanged"));
+        compatRegisterReceiver(ctx, mReceiver, new IntentFilter("onConfigurationChanged"), false);
+        isConfigurationChangeReceiverRegistered = true;
     }
 
     @Override
@@ -304,8 +307,11 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
               mOrientationListener.disable();
         }
         try {
-            ctx.unregisterReceiver(mReceiver);
-        } catch (java.lang.IllegalArgumentException e) {
+            if (isConfigurationChangeReceiverRegistered) {
+                ctx.unregisterReceiver(mReceiver);
+                isConfigurationChangeReceiverRegistered = false;
+            }
+        } catch (Exception e) {
            FLog.w(ReactConstants.TAG, "Receiver already unregistered", e);
         }
     }
@@ -321,9 +327,12 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
         if (activity == null) return;
         try
         {
-            activity.unregisterReceiver(mReceiver);
+            if (isConfigurationChangeReceiverRegistered) {
+                activity.unregisterReceiver(mReceiver);
+                isConfigurationChangeReceiverRegistered = false;
+            }
         }
-        catch (java.lang.IllegalArgumentException e) {
+        catch (Exception e) {
             FLog.w(ReactConstants.TAG, "Receiver already unregistered", e);
         }
     }
@@ -403,4 +412,23 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
             }
         }
     }
+
+    /**
+   * Starting with Android 14, apps and services that target Android 14 and use context-registered
+   * receivers are required to specify a flag to indicate whether or not the receiver should be
+   * exported to all other apps on the device: either RECEIVER_EXPORTED or RECEIVER_NOT_EXPORTED
+   *
+   * <p>https://developer.android.com/about/versions/14/behavior-changes-14#runtime-receivers-exported
+   */
+    private void compatRegisterReceiver(
+        Context context, BroadcastReceiver receiver, IntentFilter filter, boolean exported) {
+        if (Build.VERSION.SDK_INT >= 34 && context.getApplicationInfo().targetSdkVersion >= 34) {
+        context.registerReceiver(
+            receiver, filter, exported ? Context.RECEIVER_EXPORTED : Context.RECEIVER_NOT_EXPORTED);
+        } else {
+        context.registerReceiver(receiver, filter);
+        }
+    }
 }
+
+  
